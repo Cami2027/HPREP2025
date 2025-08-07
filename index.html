@@ -107,6 +107,7 @@
                     <input type="password" id="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition font-semibold">Login</button>
+                <button type="button" id="cancel-auth-btn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition font-semibold mt-2">Cancel</button>
             </form>
             <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
         </div>
@@ -141,38 +142,56 @@
 
     <!-- Admin Modal -->
     <div id="admin-modal" class="modal-backdrop hidden">
-        <div class="modal-content bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl m-4">
-            <h2 class="text-2xl font-bold mb-6">Admin Panel: Create New Event</h2>
+        <div class="modal-content bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl m-4 relative">
+            <h2 class="text-2xl font-bold mb-6">Admin Panel</h2>
+            <button id="close-admin-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
             <div id="admin-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 hidden" role="alert"></div>
             <div id="admin-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-4 hidden" role="alert"></div>
-            <form id="create-event-form">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="event-name-input" class="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
-                        <input type="text" id="event-name-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            <section class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Create New Event</h3>
+                <form id="create-event-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="event-name-input" class="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+                            <input type="text" id="event-name-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label for="event-date-input" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="event-date-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label for="event-time-input" class="block text-sm font-medium text-gray-700 mb-1">Time (e.g., 9:00 AM - 1:00 PM)</label>
+                            <input type="text" id="event-time-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label for="event-slots-input" class="block text-sm font-medium text-gray-700 mb-1">Volunteers Needed</label>
+                            <input type="number" id="event-slots-input" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
                     </div>
-                    <div>
-                        <label for="event-date-input" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                        <input type="date" id="event-date-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <div class="mt-4">
+                        <label for="event-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
+                        <textarea id="event-desc-input" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
                     </div>
-                    <div>
-                        <label for="event-time-input" class="block text-sm font-medium text-gray-700 mb-1">Time (e.g., 9:00 AM - 1:00 PM)</label>
-                        <input type="text" id="event-time-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-semibold">Publish Event</button>
                     </div>
-                    <div>
-                        <label for="event-slots-input" class="block text-sm font-medium text-gray-700 mb-1">Volunteers Needed</label>
-                        <input type="number" id="event-slots-input" min="1" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                    </div>
+                </form>
+            </section>
+            <section>
+                <h3 class="text-xl font-semibold mb-4">Manage Users</h3>
+                <div id="user-management-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 hidden" role="alert"></div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Email</th>
+                                <th class="px-4 py-2 text-left">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
                 </div>
-                <div class="mt-4">
-                    <label for="event-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
-                    <textarea id="event-desc-input" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
-                </div>
-                <div class="mt-6 flex justify-end space-x-4">
-                    <button type="button" id="close-admin-modal" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-semibold">Publish Event</button>
-                </div>
-            </form>
+            </section>
         </div>
     </div>
     
@@ -248,14 +267,15 @@
         import { 
             getFirestore, 
             collection, 
-            doc, 
-            addDoc, 
-            getDoc, 
-            setDoc, 
-            onSnapshot, 
-            updateDoc, 
-            arrayUnion, 
-            arrayRemove 
+            doc,
+            addDoc,
+            getDoc,
+            setDoc,
+            onSnapshot,
+            updateDoc,
+            arrayUnion,
+            arrayRemove,
+            getDocs
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- App Initialization ---
@@ -352,6 +372,13 @@
             Object.values(modals).forEach(m => m.classList.add('hidden'));
         }
 
+        // Close modals when clicking outside content
+        Object.values(modals).forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) hideAllModals();
+            });
+        });
+
         // --- Event Listeners for Buttons ---
         document.getElementById('prev-month-btn').addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
@@ -379,7 +406,10 @@
 
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
         
-        document.getElementById('admin-panel-btn').addEventListener('click', () => showModal('admin'));
+        document.getElementById('admin-panel-btn').addEventListener('click', () => {
+            loadUsersForAdmin();
+            showModal('admin');
+        });
         
         document.getElementById('preferences-btn').addEventListener('click', () => {
             loadUserPreferences();
@@ -387,6 +417,7 @@
         });
 
         document.getElementById('close-auth-modal').addEventListener('click', hideAllModals);
+        document.getElementById('cancel-auth-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-event-modal').addEventListener('click', hideAllModals);
         document.getElementById('close-admin-modal').addEventListener('click', hideAllModals);
         document.getElementById('close-preferences-modal').addEventListener('click', hideAllModals);
@@ -606,6 +637,47 @@
                 errorDiv.classList.remove('hidden');
             }
         });
+
+        async function loadUsersForAdmin() {
+            const usersTableBody = document.getElementById('users-table-body');
+            usersTableBody.innerHTML = '';
+            try {
+                const usersSnapshot = await getDocs(collection(db, `artifacts/${appId}/users`));
+                usersSnapshot.forEach(userDoc => {
+                    const data = userDoc.data();
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 border-b">${data.email || ''}</td>
+                        <td class="px-4 py-2 border-b">
+                            <select data-uid="${userDoc.id}" class="role-select border border-gray-300 rounded px-2 py-1">
+                                <option value="user" ${data.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="admin" ${data.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                    `;
+                    usersTableBody.appendChild(tr);
+                });
+
+                usersTableBody.querySelectorAll('.role-select').forEach(sel => {
+                    sel.addEventListener('change', async (e) => {
+                        const uid = e.target.dataset.uid;
+                        const newRole = e.target.value;
+                        try {
+                            await updateDoc(doc(db, `artifacts/${appId}/users`, uid), { role: newRole });
+                        } catch (err) {
+                            const errorDiv = document.getElementById('user-management-error');
+                            errorDiv.textContent = `Error updating role: ${err.message}`;
+                            errorDiv.classList.remove('hidden');
+                            setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+                        }
+                    });
+                });
+            } catch (err) {
+                const errorDiv = document.getElementById('user-management-error');
+                errorDiv.textContent = `Error loading users: ${err.message}`;
+                errorDiv.classList.remove('hidden');
+            }
+        }
 
         // --- Preferences Logic ---
         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
