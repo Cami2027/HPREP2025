@@ -13,6 +13,8 @@ A simple, all-in-one web application designed to help medical school HPREP (Heal
 
     Secure Authentication: Users can securely sign up and log in with an email and password.
 
+    Password Recovery: Admins can reset user passwords and users can request a temporary password via email.
+
     Dynamic Event Creation: Admins can easily create new events, specifying the date, time, description, and number of volunteers needed.
 
     Real-Time Updates: The calendar and event details update in real-time for all users as changes are made, thanks to Firebase.
