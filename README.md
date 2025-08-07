@@ -131,3 +131,148 @@ To make the scheduler accessible to your volunteers, you need to host the schedu
     Easiest Method (Recommended): Use Netlify Drop. Just drag and drop your scheduler.html file onto their site, and they will give you a shareable link instantly.
 
     Alternative Method: Use GitHub Pages by uploading the file to a public GitHub repository and enabling the Pages feature in the settings.
+
+
+📎 Appendix — Firestore Admin & Rules Setup
+Overview
+
+This project uses Firebase Authentication + Firestore with role-based access control.
+
+Admins are determined by either:
+
+    Custom Claim: admin: true on the Firebase Auth ID token (recommended).
+
+    Firestore Role: role: 'admin' in the user’s document.
+
+    ⚠ Choose one method and stick with it for consistency.
+
+1. Firestore Rules
+
+Update rules in:
+Firebase Console → Firestore Database → Rules → Publish.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isNotAnonymous() {
+      return isSignedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Admin if custom claim OR Firestore role
+    function isAdmin(appId) {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        get(/databases/$(database)/documents/artifacts/$(appId)/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // USERS
+    match /artifacts/{appId}/users/{uid} {
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin(appId));
+      allow list: if isAdmin(appId);
+
+      allow create: if isNotAnonymous()
+        && request.auth.uid == uid
+        && !(request.resource.data.role == 'admin');
+
+      allow update: if (
+          isNotAnonymous()
+          && request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(['preferences','email'])
+        ) || isAdmin(appId);
+
+      allow delete: if isAdmin(appId);
+    }
+
+    // EVENTS
+    match /artifacts/{appId}/public/data/events/{eventId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin(appId);
+    }
+  }
+}
+
+    Path format:
+    artifacts/<appId>/users/{uid}
+    artifacts/<appId>/public/data/events/{eventId}
+
+2. Setting Admin Users
+Option A — Custom Claim (Recommended)
+
+Requirements:
+
+    Node.js 18+
+
+    firebase-admin package
+
+    Service account with firebaseauth.admin role
+
+Install dependencies:
+
+npm init -y
+npm i firebase-admin
+
+Create script:
+
+// set-admin.mjs
+import admin from "firebase-admin";
+admin.initializeApp(); // Uses ADC (Cloud Shell) or GOOGLE_APPLICATION_CREDENTIALS
+
+const email = "user@example.com"; // Promote by email
+
+const user = await admin.auth().getUserByEmail(email);
+await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+console.log("Admin claim set for", email);
+
+Run script:
+
+node set-admin.mjs
+
+Refresh token in client:
+
+await firebase.auth().currentUser.getIdToken(true);
+
+Option B — Firestore Role
+
+Manually update the user document:
+
+artifacts/<appId>/users/<uid>
+
+Add:
+
+{
+  "role": "admin"
+}
+
+No token refresh required.
+3. Testing Permissions
+Rules Simulator
+
+    Open Firestore Rules → Simulator.
+
+    Test get on an event path and list on users path with/without admin.
+
+    Use custom claims JSON when simulating a signed-in admin:
+
+{ "admin": true, "firebase": { "sign_in_provider": "password" } }
+
+Client check:
+
+const res = await auth.currentUser.getIdTokenResult(true);
+console.log(res.claims.admin); // true if admin via claim
+
+4. Common Issues
+Problem	Likely Cause	Fix
+Admin panel visible, but listing users fails	User has Firestore role: 'admin' but no claim	Add custom claim or keep role-check in rules
+All admins lost access after rules change	Hardcoded {appId} doesn’t match stored paths	Use wildcard {appId} or update __app_id in front-end
+Calendar fails to load	Events path doesn’t match rules	Verify Firestore doc path format
+5. Admin Management Tips
+
+    Keep promotion/demotion logic server-side (script or callable function).
+
+    Always refresh the ID token after changing claims.
+
+    Never allow the client to directly set role: 'admin' on their own doc.
